@@ -1,4 +1,4 @@
-# xpool - A minimalistic Golang worker pool.
+# xpool - minimalistic implementation for worker pool in Golang
 
 ## Highlights 
 
