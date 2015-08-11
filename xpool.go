@@ -28,8 +28,7 @@ func (fu *Future) run() {
     fu.worker.in <- fu.input
 }
 
-func (fu *Future) Get(v interface{}, 
-        duration time.Duration) (interface{}, error) {
+func (fu *Future) Get(duration time.Duration) (interface{}, error) {
     select {
         case r := <- fu.worker.out:
             fu.pool.Return(fu.worker)
@@ -81,11 +80,15 @@ func (xp *XPool) start(){
 }
 
 func (xp *XPool) Run(input interface{}) *Future{
-    return &Future{
+    ret := &Future{
         pool: xp,
         input: input,
         worker: nil,
     }
+
+    ret.run()
+
+    return ret
 }
 
 func (xp *XPool) Borrow() *Worker{
