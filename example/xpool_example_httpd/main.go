@@ -35,11 +35,8 @@ var pool = xpool.New(10, func ( i interface{}) interface{} {
 var re_url, err = regexp.Compile("/(\\d+)/([^/]+)")
 
 func handler(w http.ResponseWriter, r *http.Request) {
-    result := re_url.FindStringSubmatch(r.URL.Path)
     var uinput *url_input
-
-    fmt.Printf("Path: %v\n", r.URL.Path)
-    fmt.Printf("result: %v\n", result)
+    result := re_url.FindStringSubmatch(r.URL.Path)
 
     if len(result) > 0 {
         val, _ := strconv.Atoi(result[1])
@@ -56,7 +53,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
     fmt.Printf("uinput is: %v\n", uinput)
     fu := pool.Run(uinput)
-    timeout := time.Second * time.Duration(3)
+    timeout := time.Second * time.Duration(5)
     r2, err := fu.Get(timeout)
     if err == nil {
         resp := r2.(*http.Response)
@@ -64,7 +61,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
         body, err := ioutil.ReadAll(resp.Body)
         fmt.Fprintf(w, "Hi there, I love %s - %v!", body, err)
     }else {
-        fmt.Fprintf(w, "Timeout: %v", timeout)
+        fmt.Fprintf(w, "err: %v", err)
     }
 }
 

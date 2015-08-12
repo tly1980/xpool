@@ -4,6 +4,7 @@ import (
     "time"
     "errors"
     "log"
+    "fmt"
 )
 
 
@@ -37,10 +38,11 @@ func (fu *Future) Get(duration time.Duration) (interface{}, error) {
             return r, nil
         case <-time.After(duration):
             // discard the timeout worker, and produce a new one instead
-            log.Printf("timeout: %v\n", duration)
+            msg := fmt.Sprintf("Timeout: %v", duration)
+            log.Println(msg)
             fu.pool.produce_worker()
             fu.worker = nil
-            return nil, errors.New("Timeout")
+            return nil, errors.New(msg)
     }
 }
 
