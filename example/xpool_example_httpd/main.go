@@ -8,14 +8,21 @@ import (
     "io/ioutil"
     "regexp"
     "strconv"
+    "flag"
 )
+
+var concurrent = flag.Int("c", 2, 
+    "Concurrency number, or pool size. Default is 2")
+var timeout = flag.Int("t", 10, 
+    "Concurrency number, or pool size. Default is 2")
+
 
 type url_input struct {
     url string
     sleep time.Duration
 }
 
-var pool = xpool.New(10, func ( i interface{}) interface{} {
+var pool = xpool.New(*concurrent, func ( i interface{}) interface{} {
     i2 := i.(*url_input)
     resp, err := http.Get(i2.url)
 
@@ -32,11 +39,11 @@ var pool = xpool.New(10, func ( i interface{}) interface{} {
     return resp
 })
 
-var re_url, err = regexp.Compile("/(\\d+)/([^/]+)")
+var RE_URL, err = regexp.Compile("/(\\d+)/([^/]+)")
 
 func handler(w http.ResponseWriter, r *http.Request) {
     var uinput *url_input
-    result := re_url.FindStringSubmatch(r.URL.Path)
+    result := RE_URL.FindStringSubmatch(r.URL.Path)
 
     if len(result) > 0 {
         val, _ := strconv.Atoi(result[1])
@@ -53,7 +60,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
     fmt.Printf("uinput is: %v\n", uinput)
     fu := pool.Run(uinput)
-    timeout := time.Second * time.Duration(5)
+    timeout := time.Second * time.Duration(*timeout)
     r2, err := fu.Get(timeout)
     if err == nil {
         resp := r2.(*http.Response)
