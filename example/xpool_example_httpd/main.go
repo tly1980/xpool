@@ -4,17 +4,19 @@ import (
     "fmt"
     "net/http"
     "time"
-    "github.com/tly1980/xpool"
     "io/ioutil"
     "regexp"
     "strconv"
     "flag"
+    "log"
+    "github.com/tly1980/xpool"
 )
 
 var concurrent = flag.Int("c", 2, 
     "Concurrency number, or pool size. Default is 2")
 var timeout = flag.Int("t", 10, 
-    "Concurrency number, or pool size. Default is 2")
+    "Timeout seconds. Default is 10 seconds.")
+var addr = flag.String("addr", ":5000", "Webserver listen addr:port")
 
 
 type url_input struct {
@@ -24,14 +26,15 @@ type url_input struct {
 
 var pool = xpool.New(*concurrent, func ( i interface{}) interface{} {
     i2 := i.(*url_input)
-    resp, err := http.Get(i2.url)
 
     if i2.sleep > 0 {
-        fmt.Printf("Sleep: %v \n", i2.sleep)
+        log.Printf("Sleep: %v \n", i2.sleep)
         time.Sleep(i2.sleep)
     } else {
-        fmt.Printf("No sleep\n")
+        log.Printf("Direct connect\n")
     }
+
+    resp, err := http.Get(i2.url)
 
     if err != nil {
         return nil
@@ -58,7 +61,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
         }
     }
 
-    fmt.Printf("uinput is: %v\n", uinput)
+    log.Printf("uinput is: %v\n", uinput)
     fu := pool.Run(uinput)
     timeout := time.Second * time.Duration(*timeout)
     r2, err := fu.Get(timeout)
@@ -74,5 +77,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
     http.HandleFunc("/", handler)
-    http.ListenAndServe(":8080", nil)
+    log.Printf("ListenAndServe @ [%s]", *addr)
+    http.ListenAndServe(*addr, nil)
 }
