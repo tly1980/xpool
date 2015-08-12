@@ -3,6 +3,7 @@ package xpool;
 import (
     "time"
     "errors"
+    "log"
 )
 
 
@@ -36,6 +37,7 @@ func (fu *Future) Get(duration time.Duration) (interface{}, error) {
             return r, nil
         case <-time.After(duration):
             // discard the timeout worker, and produce a new one instead
+            log.Printf("timeout: %v\n", duration)
             fu.pool.produce_worker()
             fu.worker = nil
             return nil, errors.New("Timeout")
