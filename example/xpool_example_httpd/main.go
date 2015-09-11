@@ -76,6 +76,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+    flag.Parse()
     http.HandleFunc("/", handler)
     log.Printf("ListenAndServe @ [%s]", *addr)
     http.ListenAndServe(*addr, nil)
